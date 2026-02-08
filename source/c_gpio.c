@@ -76,6 +76,7 @@ int setup(void)
     FILE *fp;
     char buffer[1024];
     char hardware[1024];
+    int model = 0;
     int found = 0;
 
     // try /dev/gpiomem first - this does not require root privs
@@ -103,8 +104,8 @@ int setup(void)
             (ranges[1] != 0x00) ||
             (ranges[2] != 0x00) ||
             (ranges[3] != 0x00) ||
-            ((peri_base != BCM2708_PERI_BASE_DEFAULT) && 
-             (peri_base != BCM2709_PERI_BASE_DEFAULT) && 
+            ((peri_base != BCM2708_PERI_BASE_DEFAULT) &&
+             (peri_base != BCM2709_PERI_BASE_DEFAULT) &&
              (peri_base != BCM2711_PERI_BASE_DEFAULT))) {
                  // invalid ranges file
                  peri_base = 0;
@@ -120,7 +121,7 @@ int setup(void)
                 switch (cpu) {
                     case 0 : peri_base = BCM2708_PERI_BASE_DEFAULT;
                              break;
-                    case 1 : 
+                    case 1 :
                     case 2 : peri_base = BCM2709_PERI_BASE_DEFAULT;
                              break;
                     case 3 : peri_base = BCM2711_PERI_BASE_DEFAULT;
@@ -150,6 +151,17 @@ int setup(void)
             } else if (strcmp(hardware, "BCM2711") == 0) {
                 // pi 4 hardware
                 peri_base = BCM2711_PERI_BASE_DEFAULT;
+            } else {
+                // pi 4 hardware
+                sscanf(buffer, "Model           : Raspberry Pi %d", &model);
+                switch (model) {
+                    // Don't know if this works for RPi1-RPi3, just guessing
+                    case 1: peri_base = BCM2708_PERI_BASE_DEFAULT; break;
+                    case 2: peri_base = BCM2709_PERI_BASE_DEFAULT; break;
+                    case 3: peri_base = BCM2710_PERI_BASE_DEFAULT; break;
+                    case 4: peri_base = BCM2711_PERI_BASE_DEFAULT; break;
+                    default: break;
+                }
             }
         }
         fclose(fp);
